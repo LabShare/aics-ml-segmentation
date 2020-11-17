@@ -99,7 +99,7 @@ def gt_sorting(raw_img, seg):
     z_profile = np.zeros((bw.shape[0],),dtype=int)
     for zz in range(bw.shape[0]):
         z_profile[zz] = np.count_nonzero(bw[zz,:,:])
-    mid_frame = round(histogram_otsu(z_profile)*bw.shape[0]).astype(int)
+    mid_frame = int(round(histogram_otsu(z_profile)*bw.shape[0]))
 
     #create 2x4 mosaic
     out = np.zeros((2*raw_img.shape[1], 4*raw_img.shape[2], 3),dtype=np.uint8)
@@ -156,7 +156,7 @@ def create_mask(raw_img, seg):
     z_profile = np.zeros((bw.shape[0],),dtype=int)
     for zz in range(bw.shape[0]):
         z_profile[zz] = np.count_nonzero(bw[zz,:,:])
-    mid_frame = round(histogram_otsu(z_profile)*bw.shape[0]).astype(int)
+    mid_frame = int(round(histogram_otsu(z_profile)*bw.shape[0]))
 
     offset = 20
     seg_label = seg + offset # make it brighter
@@ -281,7 +281,7 @@ class Executor(object):
                     assert os.path.exists(seg_fn)
                     filewriter.writerow([fn, seg_fn , None , None])
 
-    def execute(self, args):
+    def execute(self, args): 
 
         global draw_mask
         # part 1: do sorting
@@ -300,7 +300,7 @@ class Executor(object):
             raw_img = raw_img.astype(np.uint8)
 
             reader_seg = AICSImage(row['seg'])
-            seg = reader_seg.get_image_date("ZYX", S=0, T=0, C=0)
+            seg = reader_seg.get_image_data("ZYX", S=0, T=0, C=0)
 
             score = gt_sorting(raw_img, seg)
             if score == 1:
@@ -315,8 +315,8 @@ class Executor(object):
 
                     crop_mask = crop_mask.astype(np.uint8)
                     crop_mask[crop_mask>0]=255
-                    writer = omeTifWriter.OmeTifWriter(mask_fn)
-                    writer.save(crop_mask)
+                    with OmeTiffWriter(mask_fn) as writer:
+                        writer.save(crop_mask)
                     df['mask'].iloc[index]=mask_fn
             else:
                 df['score'].iloc[index]=0

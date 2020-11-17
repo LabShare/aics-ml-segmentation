@@ -103,7 +103,7 @@ def create_merge_mask(raw_img, seg1, seg2, drawing_aim):
     z_profile = np.zeros((bw.shape[0],),dtype=int)
     for zz in range(bw.shape[0]):
         z_profile[zz] = np.count_nonzero(bw[zz,:,:])
-    mid_frame = round(histogram_otsu(z_profile)*bw.shape[0]).astype(int)
+    mid_frame = int(round(histogram_otsu(z_profile)*bw.shape[0]))
 
     img = np.zeros((2*raw_img.shape[1], 3*raw_img.shape[2], 3),dtype=np.uint8)
 
@@ -251,10 +251,10 @@ class Executor(object):
             raw_img = raw_img.astype(np.uint8)
 
             reader_seg1 = AICSImage(row['seg1'])
-            seg1 = reader_seg1.get_image_date("ZYX", S=0, T=0, C=0) > 0.01
+            seg1 = reader_seg1.get_image_data("ZYX", S=0, T=0, C=0) > 0.01
 
             reader_seg2 = AICSImage(row['seg2'])
-            seg2 = reader_seg2.get_image_date("ZYX", S=0, T=0, C=0) > 0.01
+            seg2 = reader_seg2.get_image_data("ZYX", S=0, T=0, C=0) > 0.01
             
             create_merge_mask(raw_img, seg1.astype(np.uint8), seg2.astype(np.uint8), 'merging_mask')
 
@@ -331,7 +331,7 @@ class Executor(object):
                 cmap = np.ones(seg1.shape, dtype=np.float32)
                 if os.path.isfile(str(row['excluding_mask'])):
                     reader = AICSImage(row['excluding_mask'])
-                    ex_mask = reader.get_image_date("ZYX", S=0, T=0, C=0) > 0.01
+                    ex_mask = reader.get_image_data("ZYX", S=0, T=0, C=0) > 0.01
                     cmap[ex_mask>0]=0
                     
                 with OmeTiffWriter(args.train_path + os.sep + 'img_' + f'{training_data_count:03}' + '.ome.tif') as writer:
